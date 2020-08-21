@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @NoArgsConstructor
-@Document(collection = "UniversalJiraCollection")
+@Document(collection = "TasksCollection")
 public class Task {
     @Id
     private Integer taskId;

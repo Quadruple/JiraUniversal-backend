@@ -1,6 +1,6 @@
 package com.universaljira.jiraservice.domain.model;
 
-public enum DropTarget {
+public enum TaskType {
     TODO("todo"),
     INPROGRESS("inprogress"),
     DONE("done");
@@ -11,7 +11,7 @@ public enum DropTarget {
         return this.value;
     }
 
-    DropTarget(String value) {
+    TaskType(String value) {
         this.value = value;
     }
 }
