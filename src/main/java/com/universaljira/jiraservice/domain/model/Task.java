@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "TasksCollection")
 public class Task {
     @Id
-    private Integer taskId;
+    private String taskId;
     private String userName;
     private String type;
     private String title;

@@ -1,6 +1,7 @@
 package com.universaljira.jiraservice.domain.service;
 
 import com.universaljira.jiraservice.application.RequestModel.MoveTaskRequest;
+import com.universaljira.jiraservice.application.ResponseModel.DBResponse;
 import com.universaljira.jiraservice.domain.model.TaskType;
 import com.universaljira.jiraservice.domain.model.Task;
 import com.universaljira.jiraservice.domain.model.TotalScore;
@@ -23,23 +24,60 @@ public class TaskService {
         this.totalScoreRepository = totalScoreRepository;
     }
 
-    public void createTask(Task task) {
-        taskRepository.save(task);
+    public DBResponse createTask(Task task) {
+
+        try {
+            taskRepository.save(task);
+            return new DBResponse("success");
+        } catch(Exception e) {
+            e.printStackTrace();
+            return new DBResponse("fail");
+        }
     }
 
-    public void moveTask(MoveTaskRequest moveTaskRequest) {
+    public DBResponse moveTask(MoveTaskRequest moveTaskRequest) {
 
-        Optional<Task> maybeTask = taskRepository.findById(moveTaskRequest.getTaskId());
+        Optional<Task> maybeTask;
+
+        try {
+            maybeTask = taskRepository.findById(moveTaskRequest.getTaskId());
+        } catch(Exception e) {
+            e.printStackTrace();
+            return new DBResponse("fail");
+        }
+
+        //Optional<Task> maybeTask = taskRepository.findById(moveTaskRequest.getTaskId());
 
         if(maybeTask.isPresent()) {
             if(shouldTotalScoreChange(moveTaskRequest, maybeTask.get())) {
-                Optional<TotalScore> totalScore = totalScoreRepository.findById(maybeTask.get().getUserName());
-                updateScore(totalScore, maybeTask.get());
+                Optional<TotalScore> totalScore;
+
+                try {
+                    totalScore = totalScoreRepository.findById(maybeTask.get().getUserName());
+                } catch(Exception e) {
+                    e.printStackTrace();
+                    return new DBResponse("fail");
+                }
+
+                //Optional<TotalScore> totalScore = totalScoreRepository.findById(maybeTask.get().getUserName());
+                DBResponse updateScoreResponse = updateScore(totalScore, maybeTask.get(), moveTaskRequest.getDropTarget());
+
+                if(updateScoreResponse.getResult().equals("fail")) {
+                    return new DBResponse("fail");
+                }
             }
 
             maybeTask.get().setType(moveTaskRequest.getDropTarget());
-            taskRepository.save(maybeTask.get());
+
+            try {
+                taskRepository.save(maybeTask.get());
+                return new DBResponse("success");
+            } catch(Exception e) {
+                e.printStackTrace();
+                return new DBResponse("fail");
+            }
         }
+        return new DBResponse("fail");
     }
 
     private Boolean shouldTotalScoreChange(MoveTaskRequest moveTaskRequest, Task task) {
@@ -48,32 +86,79 @@ public class TaskService {
                         task.getType().equals(TaskType.DONE.getValue()));
     }
 
-    private void updateScore(Optional<TotalScore> totalScore, Task task) {
+    private DBResponse updateScore(Optional<TotalScore> totalScore, Task task, String dropTarget) {
         if(totalScore.isPresent()) {
-            totalScore.get().setTotalScore(totalScore.get().getTotalScore() + task.getScore());
-            totalScoreRepository.save(totalScore.get());
-        } else {
-            TotalScore newTotalScore = new TotalScore(task.getUserName(), task.getScore());
-            totalScoreRepository.save(newTotalScore);
-        }
-
-    }
-
-    public void deleteTask(Integer taskId) {
-        Optional<Task> maybeTask = taskRepository.findById(taskId);
-
-        if(maybeTask.isPresent() && maybeTask.get().getType().equals(TaskType.DONE.getValue())) {
-            Optional<TotalScore> maybeTotalScore = totalScoreRepository.findById(maybeTask.get().getUserName());
-
-            if(maybeTotalScore.isPresent()) {
-                totalScoreRepository.save(new TotalScore(maybeTask.get().getUserName(), maybeTotalScore.get().getTotalScore() - maybeTask.get().getScore()));
+            if(dropTarget.equals(TaskType.DONE.getValue())) {
+                totalScore.get().setTotalScore(totalScore.get().getTotalScore() + task.getScore());
+            } else if(dropTarget.equals(TaskType.INPROGRESS.getValue())) {
+                totalScore.get().setTotalScore(totalScore.get().getTotalScore() - task.getScore());
             }
 
-            taskRepository.deleteById(taskId);
+            try {
+                totalScoreRepository.save(totalScore.get());
+                return new DBResponse("success");
+            } catch(Exception e) {
+                e.printStackTrace();
+                return new DBResponse("fail");
+            }
+
+        } else {
+            TotalScore newTotalScore = new TotalScore(task.getUserName(), task.getScore());
+
+            try {
+                totalScoreRepository.save(newTotalScore);
+                return new DBResponse("success");
+            } catch(Exception e) {
+                e.printStackTrace();
+                return new DBResponse("fail");
+            }
         }
     }
 
-    public List<Task> getTasks() {
-        return taskRepository.findAll();
+    public DBResponse deleteTask(String taskId) {
+        //Optional<Task> maybeTask = taskRepository.findById(taskId);
+        Optional<Task> maybeTask;
+
+        try {
+            maybeTask = taskRepository.findById(taskId);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return new DBResponse("fail");
+        }
+
+        if(maybeTask.isPresent()) {
+            if(maybeTask.get().getType().equals(TaskType.DONE.getValue())) {
+                Optional<TotalScore> maybeTotalScore;
+
+                try {
+                    maybeTotalScore = totalScoreRepository.findById(maybeTask.get().getUserName());
+                } catch(Exception e) {
+                    e.printStackTrace();
+                    return new DBResponse("fail");
+                }
+
+                if(maybeTotalScore.isPresent()) {
+                    try {
+                        totalScoreRepository.save(new TotalScore(maybeTask.get().getUserName(), maybeTotalScore.get().getTotalScore() - maybeTask.get().getScore()));
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                        return new DBResponse("fail");
+                    }
+                }
+            }
+
+            try {
+                taskRepository.deleteById(taskId);
+                return new DBResponse("success");
+            } catch(Exception e) {
+                e.printStackTrace();
+                return new DBResponse("fail");
+            }
+        }
+        return new DBResponse("fail");
+    }
+
+    public Optional<List<Task>> getTasks() {
+        return Optional.of(taskRepository.findAll());
     }
 }

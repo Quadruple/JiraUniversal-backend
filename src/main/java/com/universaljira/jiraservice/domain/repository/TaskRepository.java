@@ -6,6 +6,6 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public interface TaskRepository extends MongoRepository<Task, Integer> {
-    Optional<Task> findById(Integer taskId);
+public interface TaskRepository extends MongoRepository<Task, String> {
+    Optional<Task> findById(String taskId);
 }

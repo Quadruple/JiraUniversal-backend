@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MoveTaskRequest {
-    private Integer taskId;
+    private String taskId;
     private String dropTarget;
 }
