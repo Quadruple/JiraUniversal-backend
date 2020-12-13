@@ -46,8 +46,6 @@ public class TaskService {
             return new DBResponse("fail");
         }
 
-        //Optional<Task> maybeTask = taskRepository.findById(moveTaskRequest.getTaskId());
-
         if(maybeTask.isPresent()) {
             if(shouldTotalScoreChange(moveTaskRequest, maybeTask.get())) {
                 Optional<TotalScore> totalScore;
@@ -81,16 +79,14 @@ public class TaskService {
     }
 
     private Boolean shouldTotalScoreChange(MoveTaskRequest moveTaskRequest, Task task) {
-        return moveTaskRequest.getDropTarget().equals(TaskType.DONE.getValue()) ||
-                (moveTaskRequest.getDropTarget().equals(TaskType.INPROGRESS.getValue()) &&
-                        task.getType().equals(TaskType.DONE.getValue()));
+        return moveTaskRequest.getDropTarget().equals(TaskType.DONE.getValue()) || task.getType().equals(TaskType.DONE.getValue());
     }
 
     private DBResponse updateScore(Optional<TotalScore> totalScore, Task task, String dropTarget) {
         if(totalScore.isPresent()) {
             if(dropTarget.equals(TaskType.DONE.getValue())) {
                 totalScore.get().setTotalScore(totalScore.get().getTotalScore() + task.getScore());
-            } else if(dropTarget.equals(TaskType.INPROGRESS.getValue())) {
+            } else {
                 totalScore.get().setTotalScore(totalScore.get().getTotalScore() - task.getScore());
             }
 

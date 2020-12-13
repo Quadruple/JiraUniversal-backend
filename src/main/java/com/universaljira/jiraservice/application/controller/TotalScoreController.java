@@ -2,6 +2,7 @@ package com.universaljira.jiraservice.application.controller;
 
 import com.universaljira.jiraservice.domain.model.TotalScore;
 import com.universaljira.jiraservice.domain.service.TotalScoreService;
+import com.universaljira.jiraservice.util.ScoreSorter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,41 +24,8 @@ public class TotalScoreController {
 
     @GetMapping("/getAllTotalScores")
     public List<TotalScore> getAllTotalScores() {
-        return totalScoreService.getAllTotalScores();
+        List<TotalScore> allScores = totalScoreService.getAllTotalScores();
+        allScores.sort(new ScoreSorter());
+        return allScores;
     }
 }
-
-/*
-@CrossOrigin(origins = "http://localhost:8081")
-@RestController
-@RequestMapping("/tasks")
-public class TaskController {
-
-    @Autowired
-    TaskService taskService;
-
-    public TaskController(TaskService taskService) {
-        this.taskService = taskService;
-    }
-
-    @PostMapping("/createTask")
-    public void createTask(@RequestBody Task task) {
-        taskService.createTask(task);
-    }
-
-    @PatchMapping("/moveTask")
-    public void moveTask(@RequestBody MoveTaskRequest moveTaskRequest) {
-        taskService.moveTask(moveTaskRequest);
-    }
-
-    @DeleteMapping("/deleteTask/{taskId}")
-    public void deleteTask(@PathVariable("taskId") Integer taskId) {
-        taskService.deleteTask(taskId);
-    }
-
-    @GetMapping("/getTasks")
-    public List<Task> getTasks() {
-        return taskService.getTasks();
-    }
-}
- */
