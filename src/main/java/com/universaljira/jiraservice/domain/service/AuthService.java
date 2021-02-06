@@ -18,11 +18,17 @@ public class AuthService {
 
     public DBResponse createUser(User user) {
         try {
-            authRepository.save(user);
-            return new DBResponse("success");
+            Optional<User> maybeUser = authRepository.findById(user.getUserName());
+            if(maybeUser.isPresent()) {
+                return new DBResponse("User already exists");
+            }
+            else {
+                authRepository.save(user);
+                return new DBResponse("success");            }
+
         }
         catch (Exception e) {
-            return new DBResponse("fail");
+            return new DBResponse("Something went wrong");
         }
     }
 
