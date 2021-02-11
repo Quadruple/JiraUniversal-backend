@@ -79,7 +79,8 @@ public class TaskService {
     }
 
     private Boolean shouldTotalScoreChange(MoveTaskRequest moveTaskRequest, Task task) {
-        return moveTaskRequest.getDropTarget().equals(TaskType.DONE.getValue()) || task.getType().equals(TaskType.DONE.getValue());
+        return (moveTaskRequest.getDropTarget().equals(TaskType.DONE.getValue()) && !task.getType().equals(TaskType.DONE.getValue()))
+                || (!moveTaskRequest.getDropTarget().equals(TaskType.DONE.getValue()) && task.getType().equals(TaskType.DONE.getValue()));
     }
 
     private DBResponse updateScore(Optional<TotalScore> totalScore, Task task, String dropTarget) {
